@@ -1,0 +1,49 @@
+version: "3.8" # Wersja składni docker-compose
+
+services:
+  # Usługa bazy danych MySQL
+  db:
+    image: mysql:8.0 # Możesz użyć 'mysql:latest' lub konkretnej wersji 8+
+    container_name: mysql_kurs # Nazwa kontenera
+    restart: unless-stopped # Restartuj kontener, chyba że został ręcznie zatrzymany
+    environment:
+      MYSQL_ROOT_PASSWORD: "bardzo_tajne_haslo" # WAŻNE: Zmień to hasło!
+      MYSQL_DATABASE: "baza_kursu" # Opcjonalnie: Nazwa bazy danych do utworzenia przy starcie
+      # MYSQL_USER: 'user_kursu' # Opcjonalnie: Nazwa użytkownika do utworzenia
+      # MYSQL_PASSWORD: 'haslo_usera' # Opcjonalnie: Hasło dla użytkownika (jeśli go tworzysz)
+    ports:
+      - "3306:3306" # Mapuj port 3306 na Twoim komputerze do portu 3306 w kontenerze
+    volumes:
+      - mysql_data:/var/lib/mysql # Zachowaj dane bazy nawet po zatrzymaniu/usunięciu kontenera
+
+  # PostgreSQL (z compose.yaml)
+  database:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+      # - ./docker/db/data:/var/lib/postgresql/data:rw
+    ports:
+      - "5432"
+
+  # Usługa do przechwytywania maili (Mailpit z compose.override.yaml zamiast MailHog)
+  mailer:
+    image: axllent/mailpit
+    container_name: mailpit_kurs
+    restart: unless-stopped
+    ports:
+      - "1025"
+      - "8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+volumes:
+  # Definicja wolumenów
+  mysql_data:
+    driver: local
+  database_data:
