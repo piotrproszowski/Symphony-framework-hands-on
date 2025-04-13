@@ -7,3 +7,7 @@ controllers:
 app_index:
   path: /
   controller: App\Controller\HelloController::index
+
+app_show_one:
+  path: /messages/{id}
+  controller: App\Controller\HelloController::showOne
